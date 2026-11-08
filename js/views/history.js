@@ -1,4 +1,6 @@
+import { assessmentDeletion, deleteAssessment, formatResult, latestAssessment, testName } from '../assessment.js';
 import { lineChart } from '../chart.js';
+import { TESTS } from '../data/assessment-tests.js';
 import { getAll } from '../db.js';
 import { formatDateLong, formatDateShort, localDateString, parseLocalDate } from '../format.js';
 import {
@@ -11,8 +13,9 @@ import {
   trainedDates,
 } from '../history.js';
 import { formatTarget } from '../program.js';
-import { countsAsTraining, currentStreak, ratingLabel } from '../session.js';
-import { h, icon, subpage } from '../ui.js';
+import { navigate } from '../router.js';
+import { countsAsTraining, currentStreak, deleteSession, ratingLabel } from '../session.js';
+import { confirmDialog, h, icon, subpage } from '../ui.js';
 
 const WEEKDAYS = ['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'];
 const MIN_POINTS_FOR_TREND = 2;
@@ -24,6 +27,19 @@ function statTile(value, label) {
 function monthTitle(year, month) {
   const text = new Intl.DateTimeFormat('nb-NO', { month: 'long', year: 'numeric' }).format(new Date(year, month, 1));
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+async function confirmDelete(session, focusName) {
+  const confirmed = await confirmDialog({
+    title: 'Slette økten?',
+    body: `${focusName}, ${formatDateLong(parseLocalDate(session.date))}, med ${session.loggedSets} sett. Justeringer fra økten tas også tilbake. Dette kan ikke angres.`,
+    confirmText: 'Slett økten',
+    cancelText: 'Behold økten',
+    danger: true,
+  });
+  if (!confirmed) return;
+  await deleteSession(session);
+  navigate('/historikk', { replace: true });
 }
 
 function daySection(date, sessions, sets) {
@@ -60,6 +76,15 @@ function daySection(date, sessions, sets) {
                 ),
               ),
             ),
+        h(
+          'button',
+          {
+            class: 'delete-session',
+            type: 'button',
+            onclick: () => confirmDelete(sessions.find((item) => item.id === session.id), session.focusName),
+          },
+          'Slett økt',
+        ),
       ),
     ),
   );
@@ -119,6 +144,67 @@ function chartSection(sets, assessments) {
   select.addEventListener('change', () => body.replaceChildren(...chartBlock(select.value, labelOf(select.value), sets, assessments).filter(Boolean)));
 
   return h('section', { class: 'card' }, h('h2', {}, 'Fremgang'), h('p', { class: 'muted card-text' }, 'Beste sett per dag'), select, body);
+}
+
+function assessmentDeleteText(assessments, row) {
+  const { affectsProgram, next } = assessmentDeletion(assessments, row.id);
+  let consequence = 'Programmet påvirkes ikke.';
+  if (affectsProgram) {
+    consequence = next
+      ? `Programmet bygges da på kartleggingen fra ${formatDateLong(next.createdAt)}, og justeringer nullstilles.`
+      : 'Du må gjøre en ny kartlegging for å få et program. Øktene dine beholdes.';
+  }
+  return `Kartleggingen fra ${formatDateLong(row.createdAt)} slettes. ${consequence} Dette kan ikke angres.`;
+}
+
+function assessmentsSection(assessments) {
+  if (assessments.length === 0) return null;
+  const current = latestAssessment(assessments);
+
+  async function confirmDeleteAssessment(row) {
+    const confirmed = await confirmDialog({
+      title: 'Slette kartleggingen?',
+      body: assessmentDeleteText(assessments, row),
+      confirmText: 'Slett kartleggingen',
+      cancelText: 'Behold kartleggingen',
+      danger: true,
+    });
+    if (!confirmed) return;
+    await deleteAssessment(assessments, row.id);
+    navigate('/historikk', { replace: true });
+  }
+
+  const newestFirst = [...assessments].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  return h(
+    'section',
+    { class: 'library-group assessments' },
+    h('h2', {}, 'Kartlegginger'),
+    newestFirst.map((row) =>
+      h(
+        'details',
+        { class: 'ladder' },
+        h(
+          'summary',
+          {},
+          h('span', { class: 'list-row-label' }, formatDateLong(row.createdAt)),
+          row === current ? h('span', { class: 'muted ladder-current' }, 'Gjeldende') : null,
+        ),
+        h(
+          'div',
+          { class: 'assessment-body' },
+          h(
+            'ul',
+            { class: 'plan-list' },
+            TESTS.filter((test) => row.results[test.id] !== undefined).map((test) =>
+              h('li', {}, h('span', {}, testName(test, row.coreVariant)), h('span', { class: 'muted plan-detail' }, formatResult(test, row.results[test.id]))),
+            ),
+          ),
+          h('button', { class: 'delete-assessment', type: 'button', onclick: () => confirmDeleteAssessment(row) }, 'Slett kartlegging'),
+        ),
+      ),
+    ),
+  );
 }
 
 export async function historyView() {
@@ -196,5 +282,6 @@ export async function historyView() {
     calendarSlot,
     daySlot,
     chartSection(sets, assessments),
+    assessmentsSection(assessments),
   );
 }

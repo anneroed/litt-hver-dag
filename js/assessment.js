@@ -26,6 +26,19 @@ export function saveAssessment({ results, coreVariant }, now = new Date()) {
   }).then(() => assessment);
 }
 
+/** Hva som skjer med programmet hvis kartleggingen slettes. next er testen programmet da bygger på. */
+export function assessmentDeletion(assessments, id) {
+  const latest = latestAssessment(assessments);
+  if (latest.id !== id) return { affectsProgram: false, next: latest };
+  return { affectsProgram: true, next: latestAssessment(assessments.filter((row) => row.id !== id)) };
+}
+
+/** Justeringene bygger på den gjeldende testen, så de nullstilles hvis det er den som slettes. */
+export function deleteAssessment(assessments, id) {
+  const { affectsProgram } = assessmentDeletion(assessments, id);
+  return writeChanges({ deletes: { assessments: [id] }, clears: affectsProgram ? ['exerciseState'] : [] });
+}
+
 /** Påminnelse om ny test etter 4–6 uker, eller null når det ikke er aktuelt. */
 export function reassessmentReminder(assessment, today, snoozedUntil) {
   if (!assessment || (snoozedUntil && today < snoozedUntil)) return null;

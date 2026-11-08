@@ -1,4 +1,4 @@
-import { getAll } from './db.js';
+import { getAll, getAllByIndex } from './db.js';
 import { shouldOfferInstall } from './install.js';
 import { startRouter } from './router.js';
 import { homeView } from './views/home.js';
@@ -55,8 +55,11 @@ async function registerServiceWorker() {
 async function chooseStartScreen() {
   if (shouldOfferInstall()) return '/installer';
   if (location.hash.length > 2) return null;
-  const assessments = await getAll('assessments').catch(() => [{}]);
-  return assessments.length === 0 ? '/kartlegging' : null;
+  const [assessments, activeSessions] = await Promise.all([
+    getAll('assessments'),
+    getAllByIndex('sessions', 'status', 'active'),
+  ]).catch(() => [[{}], []]);
+  return assessments.length === 0 && activeSessions.length === 0 ? '/kartlegging' : null;
 }
 
 const startScreen = await chooseStartScreen();

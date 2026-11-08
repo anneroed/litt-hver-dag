@@ -1,5 +1,5 @@
 // Øk VERSION ved hver publisering, ellers får ikke installerte apper den nye koden.
-const VERSION = '1';
+const VERSION = '2';
 const CACHE = `litt-hver-dag-${VERSION}`;
 
 const PRECACHE = [

@@ -41,6 +41,27 @@ export function applyRating(state, exercise, ratingId) {
   };
 }
 
+/** Øvelsesstatus etter at vurderingene i en slettet økt er tatt tilbake. Gir bare radene som endres. */
+export function revertSessionRatings(session, exerciseState) {
+  return Object.entries(session.ratings).flatMap(([ladderId, ratingId]) => {
+    const exercise = session.plan.exercises?.find((item) => item.ladderId === ladderId);
+    const state = exerciseState[ladderId];
+    const nextTarget = session.nextTargets?.[ladderId];
+    // Har du byttet variant siden, er justeringen allerede nullstilt.
+    if (!exercise || !state || state.stepId !== exercise.stepId || nextTarget === undefined) return [];
+
+    const direction = ratingId === 'easy' ? 'heavier' : 'lighter';
+    return [
+      {
+        ...state,
+        adjustment: state.adjustment - (nextTarget - exercise.target),
+        ratingRun: state.ratingRun?.rating === ratingId ? null : state.ratingRun,
+        suggestion: state.suggestion?.direction === direction ? null : state.suggestion,
+      },
+    ];
+  });
+}
+
 export const acceptSuggestion = (state) => ({
   exerciseId: state.exerciseId,
   stepId: state.suggestion.stepId,

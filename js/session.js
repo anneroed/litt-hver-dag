@@ -1,6 +1,7 @@
-import { get, getAll, getAllByIndex, put, putMany, remove } from './db.js';
+import { latestAssessment } from './assessment.js';
+import { get, getAll, getAllByIndex, put, putMany, remove, writeChanges } from './db.js';
 import { addDays, localDateString } from './format.js';
-import { applyRating } from './progression.js';
+import { applyRating, revertSessionRatings } from './progression.js';
 
 export const RATINGS = [
   { id: 'easy', label: 'Lett', hint: 'Jeg kunne tatt flere' },
@@ -134,6 +135,26 @@ export async function abortSession(session) {
   session.status = 'aborted';
   session.finishedAt = new Date().toISOString();
   await saveSession(session);
+}
+
+/**
+ * Sletter en økt med alle sett og tar tilbake justeringene den ga.
+ * Er det tatt en ny kartlegging etter økten, er justeringene allerede nullstilt.
+ */
+export async function deleteSession(session) {
+  const [sets, stateRows, assessments] = await Promise.all([
+    getAllByIndex('sets', 'sessionId', session.id),
+    getAll('exerciseState'),
+    getAll('assessments'),
+  ]);
+  const newestTest = latestAssessment(assessments);
+  const exerciseState = Object.fromEntries(stateRows.map((row) => [row.exerciseId, row]));
+  const reverted = newestTest?.createdAt > session.startedAt ? [] : revertSessionRatings(session, exerciseState);
+
+  await writeChanges({
+    deletes: { sessions: [session.id], sets: sets.map((row) => row.id) },
+    puts: { exerciseState: reverted },
+  });
 }
 
 /** Avslutter økter som ble startet en tidligere dag og aldri gjort ferdig. */

@@ -515,6 +515,24 @@ h2 {
   margin-top: 16px;
 }
 
+.assessments {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+.assessment-body {
+  padding: 0 16px 8px;
+}
+
+.delete-session,
+.delete-assessment {
+  min-height: 44px;
+  margin-top: 4px;
+  color: var(--danger);
+  font-size: 15px;
+  font-weight: 500;
+}
+
 .select {
   width: 100%;
   min-height: 48px;

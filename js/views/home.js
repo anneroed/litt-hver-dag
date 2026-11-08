@@ -102,13 +102,13 @@ function trainedTodayCard(context) {
 }
 
 function todayCard(context) {
-  if (!context.assessment) {
-    return messageCard('Start med en kartlegging', 'Seks korte tester som programmet bygges på.', wideButton('Start kartlegging', () => navigate('/kartlegging')));
-  }
-
   const active = findActiveSession(context.sessions);
   if (active) {
     return messageCard('Økten er i gang', `${active.plan.focusName} · ${active.loggedSets} sett logget`, wideButton('Fortsett økten', () => navigate('/okt')));
+  }
+
+  if (!context.assessment) {
+    return messageCard('Start med en kartlegging', 'Seks korte tester som programmet bygges på.', wideButton('Start kartlegging', () => navigate('/kartlegging')));
   }
 
   return trainedOn(context.sessions, localDateString(new Date())) ? trainedTodayCard(context) : planCard(context);

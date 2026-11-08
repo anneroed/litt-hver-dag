@@ -1,0 +1,11 @@
+{
+  "name": "litt-hver-dag",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personlig PWA for calisthenics litt hver dag",
+  "scripts": {
+    "start": "python3 -m http.server 4173",
+    "test": "node --test"
+  }
+}

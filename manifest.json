@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Litt hver dag",
-  "short_name": "Litt hver dag",
+  "name": "Hverdagsrep",
+  "short_name": "Hverdagsrep",
   "description": "Calisthenics litt hver dag, med stang, hoppetau og gulv.",
   "lang": "nb",
   "start_url": "./",

@@ -1,6 +1,7 @@
 import { KEY_PATHS, STORES, readAllStores, replaceAllStores } from './db.js';
 import { formatDateLong, localDateString } from './format.js';
 
+// Interne nøkler beholder det opprinnelige navnet, så eldre sikkerhetskopier fortsatt kan importeres.
 const APP_ID = 'litt-hver-dag';
 const SCHEMA_VERSION = 1;
 
@@ -22,7 +23,7 @@ export function parseBackup(text) {
   }
 
   if (backup?.app !== APP_ID || !Number.isInteger(backup.schemaVersion) || backup.schemaVersion < 1) {
-    throw new BackupError('Dette er ikke en sikkerhetskopi fra Litt hver dag.');
+    throw new BackupError('Dette er ikke en sikkerhetskopi fra Hverdagsrep.');
   }
   if (backup.schemaVersion > SCHEMA_VERSION) {
     throw new BackupError('Sikkerhetskopien er laget av en nyere versjon av appen. Oppdater appen først.');
@@ -40,7 +41,7 @@ export function parseBackup(text) {
   return { exportedAt: backup.exportedAt, data };
 }
 
-export const fileNameFor = (date) => `litt-hver-dag-backup-${localDateString(date)}.json`;
+export const fileNameFor = (date) => `hverdagsrep-backup-${localDateString(date)}.json`;
 
 const count = (number, singular, plural) => `${number} ${number === 1 ? singular : plural}`;
 

@@ -29,6 +29,11 @@ test('ukjente tabeller i filen blir ikke med', () => {
 });
 
 test('avviser fil som ikke er JSON', () => rejects('ikke json', 'JSON'));
+test('sikkerhetskopier fra før navnebyttet kan fortsatt leses', () => {
+  const older = JSON.stringify({ app: 'litt-hver-dag', schemaVersion: 1, exportedAt: '2026-11-08T12:00:00.000Z', data: data() });
+  assert.deepEqual(parseBackup(older).data, data());
+});
+
 test('avviser JSON fra noe annet', () => rejects('{"foo":1}', 'ikke en sikkerhetskopi'));
 test('avviser JSON-verdien null', () => rejects('null', 'ikke en sikkerhetskopi'));
 test('avviser nyere versjon', () => rejects(backupText({ schemaVersion: 2 }), 'nyere versjon'));
@@ -43,7 +48,7 @@ test('avviser rad uten nøkkel', () => rejects(backupText({ data: { ...data(), s
 test('avviser rad med tom nøkkel', () => rejects(backupText({ data: { ...data(), sets: [{ id: '' }] } }), 'skadet'));
 
 test('filnavnet bruker lokal dato', () => {
-  assert.equal(fileNameFor(new Date(2026, 0, 5, 23, 30)), 'litt-hver-dag-backup-2026-01-05.json');
+  assert.equal(fileNameFor(new Date(2026, 0, 5, 23, 30)), 'hverdagsrep-backup-2026-01-05.json');
 });
 
 test('beskrivelsen bøyer antall riktig', () => {

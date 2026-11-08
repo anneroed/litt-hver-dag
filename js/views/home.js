@@ -201,7 +201,7 @@ export async function homeView() {
       'main',
       { class: 'content' },
       h('p', { class: 'eyebrow' }, todayLabel()),
-      h('h1', {}, 'Litt hver dag'),
+      h('h1', {}, 'Hverdagsrep'),
       todayCard(context),
       reminderCard(context, today),
       suggestionCards(context),

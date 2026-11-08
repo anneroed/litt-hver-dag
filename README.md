@@ -1,4 +1,4 @@
-# Litt hver dag
+# Hverdagsrep
 
 Personlig PWA for calisthenics 10–30 minutter hver dag, med pull-up-stang, hoppetau og gulv.
 All data ligger lokalt på enheten i IndexedDB.

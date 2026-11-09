@@ -8,6 +8,14 @@ export function isIPhone() {
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
 
+export function isAndroid() {
+  return /Android/.test(navigator.userAgent);
+}
+
+export function installTitle() {
+  return isAndroid() ? 'Legg til på startsiden' : 'Legg til på Hjem-skjerm';
+}
+
 /** Sant første gang appen åpnes i en nettleserfane, så veiledningen ikke maser ved hver omlasting. */
 export function shouldOfferInstall() {
   if (isStandalone()) return false;

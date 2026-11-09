@@ -1,7 +1,7 @@
 import { reassessmentReminder, snoozeReminder } from '../assessment.js';
 import { put } from '../db.js';
 import { localDateString } from '../format.js';
-import { isStandalone } from '../install.js';
+import { installTitle, isStandalone } from '../install.js';
 import { buildPlan, estimateSeconds, formatTarget, LENGTHS, loadProgramContext } from '../program.js';
 import { acceptSuggestion, declineSuggestion, suggestionText } from '../progression.js';
 import { navigate } from '../router.js';
@@ -214,7 +214,7 @@ export async function homeView() {
         shortcut('library', 'Øvelsesbibliotek', '/bibliotek'),
         shortcut('test', 'Ny kartlegging', '/kartlegging'),
         shortcut('settings', 'Innstillinger', '/innstillinger'),
-        isStandalone() ? null : shortcut('add', 'Legg til på Hjem-skjerm', '/installer'),
+        isStandalone() ? null : shortcut('add', installTitle(), '/installer'),
       ),
     ),
   );

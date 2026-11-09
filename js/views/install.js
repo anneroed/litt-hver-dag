@@ -1,12 +1,26 @@
-import { isIPhone } from '../install.js';
+import { installTitle, isAndroid, isIPhone } from '../install.js';
 import { goBack } from '../router.js';
 import { h, icon, subpage } from '../ui.js';
 
-export function installView() {
-  return subpage(
-    'Legg til på Hjem-skjerm',
+const FULL_SCREEN = 'Da åpnes appen i full skjerm og virker uten nett.';
+
+function androidInstructions() {
+  return [
+    h('p', { class: 'muted intro' }, FULL_SCREEN),
+    h(
+      'ol',
+      { class: 'steps' },
+      h('li', {}, 'Trykk på ', h('strong', {}, '⋮'), ' øverst til høyre i Chrome.'),
+      h('li', {}, 'Velg ', h('strong', {}, 'Legg til på startsiden'), ' eller ', h('strong', {}, 'Installer app'), '.'),
+      h('li', {}, 'Bekreft, og åpne appen fra det nye ikonet.'),
+    ),
+  ];
+}
+
+function iPhoneInstructions() {
+  return [
     isIPhone()
-      ? h('p', { class: 'muted intro' }, 'Da åpnes appen i full skjerm og virker uten nett.')
+      ? h('p', { class: 'muted intro' }, FULL_SCREEN)
       : h('p', { class: 'muted intro' }, 'Åpne denne adressen i Safari på iPhone og gjør dette:'),
     h(
       'ol',
@@ -20,6 +34,13 @@ export function installView() {
       { class: 'card note' },
       'Treningsdata i nettleseren følger ikke med til appen på Hjem-skjermen. Tren derfor alltid fra ikonet.',
     ),
+  ];
+}
+
+export function installView() {
+  return subpage(
+    installTitle(),
+    isAndroid() ? androidInstructions() : iPhoneInstructions(),
     h('button', { class: 'button button-outline button-wide', type: 'button', onclick: () => goBack() }, 'Fortsett i nettleseren'),
   );
 }
